@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>供应商合同自动化 Demo</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, "Segoe UI", sans-serif; color: #333; display: flex; height: 100vh; overflow: hidden; }
+
+  /* 左侧导航 */
+  aside { width: 220px; background: #1e293b; color: #cbd5e1; padding: 16px 0; flex-shrink: 0; overflow-y: auto; }
+  aside h2 { color: white; font-size: 15px; padding: 0 16px; margin: 0 0 8px 0; }
+  aside .subtitle { color: #64748b; font-size: 11px; padding: 0 16px; margin-bottom: 16px; }
+  aside a { display: block; color: #cbd5e1; text-decoration: none; padding: 10px 16px; font-size: 14px; cursor: pointer; border-left: 3px solid transparent; }
+  aside a:hover { background: #334155; color: white; }
+  aside a.active { background: #334155; color: white; border-left-color: #3b82f6; }
+  aside .section { font-size: 11px; color: #64748b; padding: 12px 16px 4px; text-transform: uppercase; }
+  aside .back-btn { margin: 12px 16px; padding: 8px; background: #334155; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; width: calc(100% - 32px); }
+  aside .back-btn:hover { background: #475569; }
+
+  /* 右侧内容区 */
+  main { flex: 1; overflow-y: auto; padding: 24px 32px; background: #f8fafc; }
+  .page { display: none; }
+  .page.active { display: block; }
+  h1 { font-size: 22px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-top: 0; }
+  h2 { font-size: 17px; color: #475569; margin-top: 24px; }
+
+  .card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+  .card-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+
+  /* 状态徽章 */
+  .status { display: inline-block; padding: 4px 12px; border-radius: 12px; font-weight: bold; font-size: 13px; }
+  .Draft { background: #e0e0e0; color: #555; }
+  .NeedsInfo { background: #fff3cd; color: #856404; }
+  .UnderReview { background: #cce5ff; color: #004085; }
+  .ApprovedToSend { background: #d4edda; color: #155724; }
+  .SentForSignature { background: #d1ecf1; color: #0c5460; }
+  .Signed { background: #c3e6cb; color: #155724; }
+  .Active { background: #28a745; color: white; }
+  .Returned { background: #f8d7da; color: #721c24; }
+  .Declined { background: #f5c6cb; color: #721c24; }
+  .Expired { background: #e2e3e5; color: #383d41; }
+  .SignedUnpaid { background: #ffeaa7; color: #856404; }
+
+  /* 按钮 */
+  button { padding: 8px 14px; margin: 0; border: none; border-radius: 6px; background: #3b82f6; color: white; cursor: pointer; font-size: 14px; }
+  button:hover:not(:disabled) { background: #2563eb; }
+  button:disabled { background: #cbd5e1; cursor: not-allowed; }
+  button.danger { background: #dc3545; } button.danger:hover:not(:disabled) { background: #b02a37; }
+  button.warn { background: #f59e0b; color: white; } button.warn:hover:not(:disabled) { background: #d97706; }
+  button.ok { background: #10b981; } button.ok:hover:not(:disabled) { background: #059669; }
+  button.secondary { background: #64748b; } button.secondary:hover:not(:disabled) { background: #475569; }
+
+  /* 表单 */
+  input, select, textarea { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; width: 100%; font-family: inherit; }
+  .form-row { display: grid; grid-template-columns: 160px 1fr; gap: 12px; align-items: center; margin-bottom: 10px; }
+  .form-row label { font-size: 14px; color: #475569; }
+  .checkbox-row { display: flex; align-items: center; gap: 8px; }
+  .checkbox-row input { width: auto; }
+
+  /* 表格 */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+  th { background: #f1f5f9; font-weight: 600; color: #334155; }
+  tr:hover { background: #f8fafc; }
+
+  /* 日志 */
+  .logs { font-family: ui-monospace, monospace; font-size: 12px; background: #1e293b; color: #cbd5e1; padding: 14px; border-radius: 6px; max-height: 400px; overflow-y: auto; }
+  .logs div { padding: 4px 0; border-bottom: 1px solid #334155; }
+  .logs b { color: #60a5fa; }
+
+  /* 提示 */
+  .missing { background: #fef3c7; padding: 10px 14px; border-left: 4px solid #f59e0b; margin: 12px 0; border-radius: 4px; font-size: 13px; }
+  .hint { color: #94a3b8; font-size: 13px; font-style: italic; padding: 8px 0; }
+  .msg { font-size: 13px; margin-top: 8px; min-height: 20px; }
+  .msg.ok { color: #059669; }
+  .msg.err { color: #dc2626; }
+
+  /* 版本徽章 */
+  .version-badge { background: #3b82f6; color: white; padding: 2px 10px; border-radius: 10px; font-size: 12px; font-weight: bold; }
+
+  /* 合同预览样式 */
+  .contract-paper { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 40px; max-width: 800px; margin: 0 auto; font-family: Georgia, serif; line-height: 1.8; }
+  .contract-paper h1 { text-align: center; border: none; font-size: 22px; margin-bottom: 8px; }
+  .contract-paper .meta { text-align: center; color: #64748b; font-size: 12px; margin-bottom: 30px; }
+  .contract-paper h3 { color: #1e293b; font-size: 15px; margin-top: 24px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; }
+  .contract-paper table { font-size: 13px; margin: 10px 0; }
+  .contract-paper td { padding: 6px 10px; }
+  .contract-paper td:first-child { width: 180px; color: #64748b; }
+
+  .empty { color: #94a3b8; padding: 24px; text-align: center; font-size: 14px; }
+
+  /* 顶部工具栏 */
+  .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; }
+  .breadcrumb { color: #64748b; font-size: 13px; margin-bottom: 12px; }
+  .breadcrumb a { color: #3b82f6; cursor: pointer; text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<aside>
+  <h2>供应商合同自动化</h2>
+  <div class="subtitle">SaaS / API 分销协议</div>
+  <a data-nav="list" class="active" onclick="navigate('list')">📋 合同列表</a>
+  <a data-nav="create" onclick="navigate('create')">➕ 新建合同</a>
+  <a data-nav="detail" onclick="navigate('detail')">📄 合同详情</a>
+  <a data-nav="preview" onclick="navigate('preview')">📑 合同预览</a>
+  <div class="section">审计</div>
+  <a data-nav="approvals" onclick="navigate('approvals')">📊 审批记录</a>
+  <a data-nav="versions" onclick="navigate('versions')">🕐 版本历史</a>
+  <a data-nav="logs" onclick="navigate('logs')">📜 操作日志</a>
+  <a data-nav="archive" onclick="navigate('archive')">📦 归档证据</a>
+</aside>
+
+<main>
+
+  <!-- ===== 页面：合同列表 ===== -->
+  <div class="page active" id="page-list">
+    <h1>合同列表</h1>
+    <div class="toolbar">
+      <button onclick="loadContractList()">刷新</button>
+      <button class="ok" onclick="navigate('create')">➕ 新建合同</button>
+    </div>
+    <div class="card">
+      <table id="contract-list-table">
+        <thead><tr><th>供应商</th><th>状态</th><th>版本</th><th>更新时间</th><th>操作</th></tr></thead>
+        <tbody><tr><td colspan="5" class="empty">加载中…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== 页面：新建合同 ===== -->
+  <div class="page" id="page-create">
+    <h1>新建供应商合同</h1>
+    <div class="card">
+      <div class="form-row"><label>供应商法定名称</label><input id="f_vendor_name" value="Singapore Cloud Pte Ltd"></div>
+      <div class="form-row"><label>注册地</label><input id="f_vendor_country" value="Singapore"></div>
+      <div class="form-row"><label>注册地址</label><input id="f_vendor_address" value="1 Marina Blvd"></div>
+      <div class="form-row"><label>产品/服务</label><input id="f_product_name" value="API 数据服务"></div>
+      <div class="form-row"><label>业务线</label><input id="f_business_line" value="SaaS"></div>
+      <div class="form-row"><label>地域</label><input id="f_region" value="东南亚"></div>
+      <div class="form-row"><label>客户范围</label><input id="f_customer_scope" value="SMB"></div>
+      <div class="form-row"><label>收费方式</label><input id="f_pricing_model" value="按量计费"></div>
+      <div class="form-row"><label>币种</label><input id="f_currency" value="USD"></div>
+      <div class="form-row"><label>收入计算口径</label><input id="f_revenue_definition" value="按客户实际使用量"></div>
+      <div class="form-row"><label>平台分成比例</label><input id="f_platform_share" type="number" step="0.01" value="0.7"></div>
+      <div class="form-row"><label>供应商分成比例</label><input id="f_vendor_share" type="number" step="0.01" value="0.3"></div>
+      <div class="form-row"><label>结算周期</label><input id="f_settlement_cycle" value="月结30天"></div>
+      <div class="form-row"><label>退款处理</label><input id="f_refund_policy" value="供应商承担"></div>
+      <div class="form-row"><label>税务/开票责任</label><input id="f_tax_invoice_party" value="供应商开票"></div>
+      <div class="form-row"><label>签字人姓名</label><input id="f_signer_name" value="张三"></div>
+      <div class="form-row"><label>签字人职务</label><input id="f_signer_title" value="COO"></div>
+      <div class="form-row"><label>签字人邮箱</label><input id="f_signer_email" value="zhang@example.com"></div>
+      <div class="form-row"><label>授权确认</label><div class="checkbox-row"><input id="f_signer_authorized" type="checkbox" checked><span>签字人已获得授权</span></div></div>
+
+      <div class="card-actions">
+        <button class="ok" onclick="createContract()">创建合同</button>
+        <button class="secondary" onclick="navigate('list')">返回列表</button>
+        <span id="create-msg" class="msg"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 页面：合同详情 ===== -->
+  <div class="page" id="page-detail">
+    <div class="breadcrumb"><a onclick="navigate('list')">合同列表</a> / 合同详情</div>
+    <h1>合同详情</h1>
+
+    <div class="card" id="detail-status-card" style="display:none">
+      <table style="max-width:600px">
+        <tr><td style="width:120px; color:#64748b"><strong>供应商</strong></td><td><span id="d-vendor"></span></td></tr>
+        <tr><td style="color:#64748b"><strong>当前版本</strong></td><td><span id="d-version" class="version-badge"></span></td></tr>
+        <tr><td style="color:#64748b"><strong>状态</strong></td><td><span id="d-status" class="status"></span></td></tr>
+        <tr><td style="color:#64748b"><strong>当前负责人</strong></td><td><span id="d-owner">—</span></td></tr>
+      </table>
+      <div id="d-missing" class="missing" style="display:none"></div>
+    </div>
+
+    <!-- 提交申请 -->
+    <div class="card" id="card-submit" style="display:none">
+      <h3 style="margin-top:0">提交申请</h3>
+      <p class="hint">提交后进入 Under Review，由法务和 CEO 串行审批。</p>
+      <button class="ok" onclick="submitContract()">提交申请</button>
+      <span id="submit-msg" class="msg"></span>
+    </div>
+
+    <!-- 审批 -->
+    <div class="card" id="card-approval" style="display:none">
+      <h3 style="margin-top:0">审批（串行：法务先，CEO 后）</h3>
+      <div style="margin-bottom:12px; padding:12px; background:#f1f5f9; border-radius:6px">
+        <strong>法务（Legal_Alice）</strong><br>
+        <button class="ok" onclick="approveAs('Legal_Alice')">法务审批通过</button>
+        <button class="warn" onclick="rejectAs('Legal_Alice')">法务退回</button>
+      </div>
+      <div style="padding:12px; background:#f1f5f9; border-radius:6px">
+        <strong>CEO（CEO_Bob）</strong><br>
+        <button class="ok" id="btn-ceo" onclick="approveAs('CEO_Bob')" disabled>CEO 审批通过</button>
+        <span id="ceo-hint" class="hint">等待法务先审批当前版本…</span>
+      </div>
+      <div id="approval-msg" class="msg"></div>
+    </div>
+
+    <!-- 编辑合同 -->
+    <div class="card" id="card-edit" style="display:none">
+      <h3 style="margin-top:0">修改合同（当前状态允许编辑）</h3>
+      <p class="hint">任意字段变更都会让版本 +1，旧审批自动失效。只提交有变化的字段。</p>
+      <div class="form-row"><label>平台分成比例</label><input id="e_platform_share" type="number" step="0.01"></div>
+      <div class="form-row"><label>供应商分成比例</label><input id="e_vendor_share" type="number" step="0.01"></div>
+      <div class="form-row"><label>退款处理</label><input id="e_refund_policy"></div>
+      <div class="form-row"><label>收入计算口径</label><input id="e_revenue_definition"></div>
+      <div class="form-row"><label>结算周期</label><input id="e_settlement_cycle"></div>
+      <div class="form-row"><label>签字人邮箱</label><input id="e_signer_email"></div>
+      <button onclick="submitEdit()">提交修改</button>
+      <span id="edit-msg" class="msg"></span>
+    </div>
+
+    <!-- 合同操作 -->
+    <div class="card" id="card-send" style="display:none">
+      <h3 style="margin-top:0">发起签署</h3>
+      <p class="hint">合同已获两位审批人同版本通过，可以正式发给供应商签署。</p>
+      <button onclick="sendForSignature()">发起签署</button>
+    </div>
+
+    <div class="card" id="card-sign" style="display:none">
+      <h3 style="margin-top:0">电子签（Mock）</h3>
+      <p class="hint">当前处于 Sent for Signature，等待签署人动作。</p>
+      <button class="ok" onclick="mockSign()">模拟签署完成</button>
+      <button class="danger" onclick="mockDecline()">模拟拒签</button>
+      <button class="warn" onclick="mockExpire()">模拟过期</button>
+    </div>
+
+    <div class="card" id="card-reset" style="display:none">
+      <h3 style="margin-top:0">测试完成</h3>
+      <p class="hint">本轮流程已结束（Active / Declined / Expired）。可以新建一笔合同重新测试。</p>
+      <button class="ok" onclick="navigate('create')">➕ 新建一笔合同</button>
+      <button class="secondary" onclick="navigate('list')">返回列表</button>
+    </div>
+
+    <div id="detail-actions-msg" class="msg"></div>
+  </div>
+
+  <!-- ===== 页面：合同预览 ===== -->
+  <div class="page" id="page-preview">
+    <div class="breadcrumb"><a onclick="navigate('list')">合同列表</a> / <a onclick="navigate('detail')">合同详情</a> / 合同预览</div>
+    <h1>合同草稿预览</h1>
+    <div class="toolbar">
+      <button onclick="loadPreview()">刷新预览</button>
+      <button class="secondary" onclick="navigate('detail')">返回详情</button>
+    </div>
+    <div id="preview-content"><div class="empty">请先选择一笔合同。</div></div>
+  </div>
+
+  <!-- ===== 页面：审批记录 ===== -->
+  <div class="page" id="page-approvals">
+    <div class="breadcrumb"><a onclick="navigate('detail')">合同详情</a> / 审批记录</div>
+    <h1>审批记录</h1>
+    <div class="card">
+      <table id="approvals-table">
+        <thead><tr><th>审批人</th><th>版本</th><th>决定</th><th>意见</th><th>有效</th><th>时间</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== 页面：版本历史 ===== -->
+  <div class="page" id="page-versions">
+    <div class="breadcrumb"><a onclick="navigate('detail')">合同详情</a> / 版本历史</div>
+    <h1>版本历史</h1>
+    <div class="card">
+      <table id="versions-table">
+        <thead><tr><th>版本</th><th>创建时间</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== 页面：操作日志 ===== -->
+  <div class="page" id="page-logs">
+    <div class="breadcrumb"><a onclick="navigate('detail')">合同详情</a> / 操作日志</div>
+    <h1>操作日志</h1>
+    <div class="card">
+      <div class="logs" id="logs-box">（暂无日志）</div>
+    </div>
+  </div>
+
+  <!-- ===== 页面：归档证据 ===== -->
+  <div class="page" id="page-archive">
+    <div class="breadcrumb"><a onclick="navigate('detail')">合同详情</a> / 归档证据</div>
+    <h1>归档证据</h1>
+    <div class="card">
+      <button onclick="loadArchive()">刷新</button>
+      <div id="archive-box" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const API = "/api";
+let currentContractId = null;
+let currentContract = null;
+
+const STATUS_CLASS = {
+  "Draft": "Draft", "Needs Information": "NeedsInfo", "Under Review": "UnderReview",
+  "Approved to Send": "ApprovedToSend", "Sent for Signature": "SentForSignature",
+  "Signed": "Signed", "Active": "Active", "Returned": "Returned",
+  "Declined": "Declined", "Expired": "Expired", "Signed_Unpaid": "SignedUnpaid"
+};
+const OWNER_BY_STATUS = {
+  "Draft": "供应商 / 商务", "Needs Information": "供应商 / 商务",
+  "Under Review": "审批人（法务 / CEO）", "Returned": "供应商 / 商务",
+  "Approved to Send": "业务（发起签署）", "Sent for Signature": "签署人",
+  "Signed": "系统（归档中）", "Active": "已完成",
+  "Declined": "供应商 / 商务（可重新发起）", "Expired": "供应商 / 商务（可重新发起）",
+  "Signed_Unpaid": "财务（Mock）"
+};
+const EDITABLE_STATES = ["Draft", "Needs Information", "Returned"];
+const TERMINAL_STATES = ["Active", "Declined", "Expired"];
+
+async function api(path, method="GET", body=null) {
+  const opts = { method, headers: { "Content-Type": "application/json" } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.detail || JSON.stringify(data));
+  return data;
+}
+
+function show(id, visible) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = visible ? "block" : "none";
+}
+function setMsg(id, text, isErr=false) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerText = text || "";
+  el.className = "msg " + (isErr ? "err" : "ok");
+}
+
+/* ===== 页面导航 ===== */
+function navigate(page) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  const target = document.getElementById("page-" + page);
+  if (target) target.classList.add("active");
+  document.querySelectorAll("aside a").forEach(a => a.classList.remove("active"));
+  const nav = document.querySelector(`aside a[data-nav="${page}"]`);
+  if (nav) nav.classList.add("active");
+
+  if (page === "list") loadContractList();
+  if (page === "detail") refreshContract();
+  if (page === "preview") loadPreview();
+  if (page === "approvals") loadApprovals();
+  if (page === "versions") loadVersions();
+  if (page === "logs") loadLogs();
+  if (page === "archive") loadArchive();
+}
+
+/* ===== 合同列表 ===== */
+async function loadContractList() {
+  const tbody = document.querySelector("#contract-list-table tbody");
+  tbody.innerHTML = `<tr><td colspan="5" class="empty">加载中…</td></tr>`;
+  try {
+    const rows = await api("/contracts");
+    if (!rows.length) {
+      tbody.innerHTML = `<tr><td colspan="5" class="empty">暂无合同，点右上角「新建合同」开始。</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td>${r.vendor_name || "（未命名）"}</td>
+        <td><span class="status ${STATUS_CLASS[r.status] || ""}">${r.status}</span></td>
+        <td>V${r.version}</td>
+        <td>${r.updated_at || ""}</td>
+        <td><button onclick="openContract('${r.id}')">打开</button></td>
+      </tr>
+    `).join("");
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty">加载失败：${e.message}</td></tr>`;
+  }
+}
+
+function openContract(id) {
+  currentContractId = id;
+  navigate("detail");
+}
+
+/* ===== 新建合同 ===== */
+async function createContract() {
+  const fields = ["vendor_name","vendor_country","vendor_address","product_name","business_line",
+    "region","customer_scope","pricing_model","currency","revenue_definition",
+    "settlement_cycle","refund_policy","tax_invoice_party",
+    "signer_name","signer_title","signer_email"];
+  const payload = {};
+  fields.forEach(f => payload[f] = document.getElementById("f_" + f).value);
+  payload.platform_share = parseFloat(document.getElementById("f_platform_share").value);
+  payload.vendor_share = parseFloat(document.getElementById("f_vendor_share").value);
+  payload.signer_authorized = document.getElementById("f_signer_authorized").checked;
+
+  try {
+    const res = await api("/contracts", "POST", payload);
+    currentContractId = res.id;
+    setMsg("create-msg", "✅ 创建成功，正在跳转…");
+    setTimeout(() => navigate("detail"), 500);
+  } catch (e) {
+    setMsg("create-msg", "❌ " + e.message, true);
+  }
+}
+
+/* ===== 合同详情 ===== */
+async function refreshContract() {
+  if (!currentContractId) {
+    show("detail-status-card", false);
+    show("card-submit", false);
+    show("card-approval", false);
+    show("card-edit", false);
+    show("card-send", false);
+    show("card-sign", false);
+    show("card-reset", false);
+    return;
+  }
+  try {
+    const c = await api("/contracts/" + currentContractId);
+    currentContract = c;
+
+    show("detail-status-card", true);
+    document.getElementById("d-vendor").innerText = c.vendor_name || "（未命名）";
+    document.getElementById("d-version").innerText = "V" + c.current_version;
+    const sEl = document.getElementById("d-status");
+    sEl.innerText = c.status;
+    sEl.className = "status " + (STATUS_CLASS[c.status] || "");
+    document.getElementById("d-owner").innerText = OWNER_BY_STATUS[c.status] || "—";
+
+    const mBox = document.getElementById("d-missing");
+    if (c.missing_fields && c.missing_fields.length) {
+      mBox.style.display = "block";
+      mBox.innerText = "⚠️ 缺失字段（阻断发签）：" + c.missing_fields.join("、");
+    } else {
+      mBox.style.display = "none";
+    }
+
+    // 提交申请
+    show("card-submit", c.status === "Draft" || c.status === "Needs Information" || c.status === "Returned");
+
+    // 审批
+    const underReview = c.status === "Under Review";
+    show("card-approval", underReview);
+    let legalApproved = false;
+    if (underReview) {
+      try {
+        const approvals = await api("/contracts/" + currentContractId + "/approvals");
+        legalApproved = approvals.some(a =>
+          a.approver === "Legal_Alice" && a.version === c.current_version &&
+          a.decision === "approved" && a.is_valid
+        );
+      } catch (e) {}
+    }
+    const ceoBtn = document.getElementById("btn-ceo");
+    const ceoHint = document.getElementById("ceo-hint");
+    if (underReview) {
+      ceoBtn.disabled = !legalApproved;
+      ceoHint.innerText = legalApproved ? "法务已批当前版本，可以审批。" : "等待法务先审批当前版本…";
+    }
+
+    // 编辑
+    const canEdit = EDITABLE_STATES.includes(c.status);
+    show("card-edit", canEdit);
+    if (canEdit) {
+      ["platform_share","vendor_share","refund_policy","revenue_definition","settlement_cycle","signer_email"].forEach(f => {
+        const el = document.getElementById("e_" + f);
+        if (el) el.value = c[f] == null ? "" : c[f];
+      });
+    }
+
+    // 发起签署
+    show("card-send", c.status === "Approved to Send");
+    // 电子签
+    show("card-sign", c.status === "Sent for Signature");
+    // 重来
+    show("card-reset", TERMINAL_STATES.includes(c.status));
+
+  } catch (e) {
+    setMsg("detail-actions-msg", "❌ " + e.message, true);
+  }
+}
+
+/* ===== 操作 ===== */
+async function submitContract() {
+  try {
+    const r = await api("/contracts/" + currentContractId + "/submit", "POST",
+      { operator: "Vendor", comment: "提交" });
+    setMsg("submit-msg", r.can_proceed ? "✅ 已提交，进入 Under Review" : "⚠️ 缺字段：" + r.missing_fields.join("、"));
+    await refreshContract();
+  } catch (e) { setMsg("submit-msg", "❌ " + e.message, true); }
+}
+
+async function approveAs(approver) {
+  try {
+    await api("/contracts/" + currentContractId + "/approve", "POST",
+      { operator: approver, comment: approver + " 审批通过" });
+    setMsg("approval-msg", "✅ " + approver + " 已审批");
+    await refreshContract();
+  } catch (e) { setMsg("approval-msg", "❌ " + e.message, true); }
+}
+
+async function rejectAs(approver) {
+  try {
+    await api("/contracts/" + currentContractId + "/reject", "POST",
+      { operator: approver, comment: "条款需要修改" });
+    setMsg("approval-msg", "↩️ 已退回");
+    await refreshContract();
+  } catch (e) { setMsg("approval-msg", "❌ " + e.message, true); }
+}
+
+async function submitEdit() {
+  const values = {};
+  const fields = ["platform_share","vendor_share","refund_policy","revenue_definition","settlement_cycle","signer_email"];
+  fields.forEach(f => {
+    const el = document.getElementById("e_" + f);
+    if (!el) return;
+    let v = el.value;
+    if (f === "platform_share" || f === "vendor_share") v = parseFloat(v);
+    values[f] = v;
+  });
+  try {
+    const r = await api("/contracts/" + currentContractId + "/update", "POST",
+      { operator: "Biz", values: values });
+    if (r.changed_fields && r.changed_fields.length) {
+      setMsg("edit-msg", `🔁 已修改字段：${r.changed_fields.join("、")}，版本 -> V${r.version}，旧审批失效`);
+    } else {
+      setMsg("edit-msg", "ℹ️ 无实际变更，版本未变");
+    }
+    await refreshContract();
+  } catch (e) { setMsg("edit-msg", "❌ " + e.message, true); }
+}
+
+async function sendForSignature() {
+  try {
+    await api("/contracts/" + currentContractId + "/send", "POST",
+      { operator: "Biz", comment: "发起签署" });
+    setMsg("detail-actions-msg", "📤 已发起签署");
+    await refreshContract();
+  } catch (e) { setMsg("detail-actions-msg", "❌ " + e.message, true); }
+}
+
+async function mockSign() {
+  try {
+    await api("/contracts/" + currentContractId + "/sign", "POST",
+      { operator: "Signer", comment: "签署完成" });
+    setMsg("detail-actions-msg", "✍️ 已签署，进入 Active");
+    await refreshContract();
+  } catch (e) { setMsg("detail-actions-msg", "❌ " + e.message, true); }
+}
+
+async function mockDecline() {
+  try {
+    await api("/contracts/" + currentContractId + "/decline", "POST",
+      { operator: "Signer", comment: "不同意条款" });
+    setMsg("detail-actions-msg", "❌ 签署人拒签");
+    await refreshContract();
+  } catch (e) { setMsg("detail-actions-msg", "❌ " + e.message, true); }
+}
+
+async function mockExpire() {
+  try {
+    await api("/contracts/" + currentContractId + "/expire", "POST",
+      { operator: "System", comment: "超时" });
+    setMsg("detail-actions-msg", "⏰ 签署已过期");
+    await refreshContract();
+  } catch (e) { setMsg("detail-actions-msg", "❌ " + e.message, true); }
+}
+
+/* ===== 预览 ===== */
+async function loadPreview() {
+  const box = document.getElementById("preview-content");
+  if (!currentContractId) {
+    box.innerHTML = `<div class="empty">请先在合同列表里打开一笔合同。</div>`;
+    return;
+  }
+  try {
+    const p = await api("/contracts/" + currentContractId + "/preview");
+    const sa = p.schedule_a;
+    const sg = p.signer;
+    box.innerHTML = `
+      <div class="contract-paper">
+        <h1>${p.title}</h1>
+        <div class="meta">合同版本 V${p.version} · 状态 ${p.status} · 生成时间 ${p.generated_at}</div>
+
+        <h3>甲乙双方</h3>
+        <table>
+          <tr><td>甲方</td><td>${p.party_a}</td></tr>
+          <tr><td>乙方</td><td>${p.party_b}</td></tr>
+          <tr><td>乙方注册地</td><td>${p.party_b_country}</td></tr>
+          <tr><td>乙方注册地址</td><td>${p.party_b_address}</td></tr>
+        </table>
+
+        <h3>Schedule A · 商业条款</h3>
+        <table>
+          ${Object.entries(sa).map(([k,v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join("")}
+        </table>
+
+        <h3>签字人信息</h3>
+        <table>
+          ${Object.entries(sg).map(([k,v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join("")}
+        </table>
+
+        ${p.missing_fields && p.missing_fields.length
+          ? `<div class="missing">⚠️ 本预览存在缺失字段，不可发签：${p.missing_fields.join("、")}</div>`
+          : `<div class="hint">✅ Schedule A 字段齐全，可以进入审批流程。</div>`}
+      </div>
+    `;
+  } catch (e) {
+    box.innerHTML = `<div class="empty">加载失败：${e.message}</div>`;
+  }
+}
+
+/* ===== 审计页面 ===== */
+async function loadApprovals() {
+  const tbody = document.querySelector("#approvals-table tbody");
+  if (!currentContractId) { tbody.innerHTML = `<tr><td colspan="6" class="empty">请先打开一笔合同。</td></tr>`; return; }
+  try {
+    const rows = await api("/contracts/" + currentContractId + "/approvals");
+    tbody.innerHTML = rows.map(r =>
+      `<tr><td>${r.approver}</td><td>V${r.version}</td><td>${r.decision}</td>
+       <td>${r.comment||""}</td><td>${r.is_valid ? "✅" : "❌"}</td><td>${r.created_at||""}</td></tr>`
+    ).join("") || `<tr><td colspan="6" class="empty">暂无审批记录</td></tr>`;
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty">加载失败：${e.message}</td></tr>`;
+  }
+}
+
+async function loadVersions() {
+  const tbody = document.querySelector("#versions-table tbody");
+  if (!currentContractId) { tbody.innerHTML = `<tr><td colspan="2" class="empty">请先打开一笔合同。</td></tr>`; return; }
+  try {
+    const rows = await api("/contracts/" + currentContractId + "/versions");
+    tbody.innerHTML = rows.map(r =>
+      `<tr><td>V${r.version}</td><td>${r.created_at||""}</td></tr>`
+    ).join("") || `<tr><td colspan="2" class="empty">暂无版本记录</td></tr>`;
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="2" class="empty">加载失败：${e.message}</td></tr>`;
+  }
+}
+
+async function loadLogs() {
+  const box = document.getElementById("logs-box");
+  if (!currentContractId) { box.innerHTML = "请先打开一笔合同。"; return; }
+  try {
+    const rows = await api("/contracts/" + currentContractId + "/logs");
+    box.innerHTML = rows.map(r =>
+      `<div>[${r.created_at}] <b>${r.operator}</b> · ${r.action} · V${r.version||"-"} · ${r.detail||""}</div>`
+    ).join("") || "（暂无日志）";
+  } catch (e) {
+    box.innerHTML = "加载失败：" + e.message;
+  }
+}
+
+async function loadArchive() {
+  const box = document.getElementById("archive-box");
+  if (!currentContractId) { box.innerHTML = "请先打开一笔合同。"; return; }
+  try {
+    const r = await api("/contracts/" + currentContractId + "/archive");
+    box.innerHTML = `<div class="card">📦 应归档文件：<ul>${r.archive_items.map(i => `<li>${i}</li>`).join("")}</ul></div>`;
+  } catch (e) {
+    box.innerHTML = `<div class="empty">⚠️ ${e.message}</div>`;
+  }
+}
+
+/* 启动 */
+navigate("list");
+</script>
+</body>
+</html>

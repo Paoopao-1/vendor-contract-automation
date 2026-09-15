@@ -1,0 +1,1 @@
+APPROVERS = ["Legal_Alice", "CEO_Bob"]
