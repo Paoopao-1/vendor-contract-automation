@@ -26,4 +26,10 @@ def index():
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    url = os.getenv("DATABASE_URL") or ""
+    return {
+        "status": "ok",
+        "has_db_url": bool(url),
+        "db_url_prefix": url[:40],
+        "db_url_length": len(url),
+    }
