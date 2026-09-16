@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.env
+vendor_contract.db
+.git/
+.venv/
+venv/
+tests/
+.DS_Store
+.vscode/
+*.md
