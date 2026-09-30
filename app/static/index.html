@@ -7,6 +7,11 @@
   * { box-sizing: border-box; }
   body { margin: 0; font-family: -apple-system, "Segoe UI", sans-serif; color: #333; display: flex; height: 100vh; overflow: hidden; }
 
+  /* 顶部加载条 */
+  #loading-bar { position: fixed; top: 0; left: 0; height: 3px; width: 0%; background: #3b82f6; transition: width 0.3s; z-index: 9999; }
+  #loading-bar.active { width: 70%; }
+  #loading-bar.done { width: 100%; background: #10b981; }
+
   /* 左侧导航 */
   aside { width: 220px; background: #1e293b; color: #cbd5e1; padding: 16px 0; flex-shrink: 0; overflow-y: auto; }
   aside h2 { color: white; font-size: 15px; padding: 0 16px; margin: 0 0 8px 0; }
@@ -14,9 +19,6 @@
   aside a { display: block; color: #cbd5e1; text-decoration: none; padding: 10px 16px; font-size: 14px; cursor: pointer; border-left: 3px solid transparent; }
   aside a:hover { background: #334155; color: white; }
   aside a.active { background: #334155; color: white; border-left-color: #3b82f6; }
-  aside .section { font-size: 11px; color: #64748b; padding: 12px 16px 4px; text-transform: uppercase; }
-  aside .back-btn { margin: 12px 16px; padding: 8px; background: #334155; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; width: calc(100% - 32px); }
-  aside .back-btn:hover { background: #475569; }
 
   /* 右侧内容区 */
   main { flex: 1; overflow-y: auto; padding: 24px 32px; background: #f8fafc; }
@@ -24,6 +26,7 @@
   .page.active { display: block; }
   h1 { font-size: 22px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-top: 0; }
   h2 { font-size: 17px; color: #475569; margin-top: 24px; }
+  h3 { font-size: 15px; color: #334155; margin-top: 20px; }
 
   .card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
   .card-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
@@ -50,6 +53,7 @@
   button.warn { background: #f59e0b; color: white; } button.warn:hover:not(:disabled) { background: #d97706; }
   button.ok { background: #10b981; } button.ok:hover:not(:disabled) { background: #059669; }
   button.secondary { background: #64748b; } button.secondary:hover:not(:disabled) { background: #475569; }
+  button.small { padding: 4px 10px; font-size: 12px; }
 
   /* 表单 */
   input, select, textarea { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; width: 100%; font-family: inherit; }
@@ -95,22 +99,39 @@
   .breadcrumb { color: #64748b; font-size: 13px; margin-bottom: 12px; }
   .breadcrumb a { color: #3b82f6; cursor: pointer; text-decoration: none; }
   .breadcrumb a:hover { text-decoration: underline; }
+
+  /* Tab 导航 */
+  .tabs { display: flex; gap: 4px; border-bottom: 2px solid #e2e8f0; margin-bottom: 20px; }
+  .tabs button { background: none; color: #64748b; border-radius: 0; padding: 10px 16px; font-size: 14px; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+  .tabs button:hover { background: #f1f5f9; color: #334155; }
+  .tabs button.active { color: #3b82f6; border-bottom-color: #3b82f6; font-weight: 600; }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* 归档证据卡片 */
+  .archive-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #e2e8f0; }
+  .archive-item:last-child { border-bottom: none; }
+  .archive-item .info { flex: 1; }
+  .archive-item .name { font-weight: 600; color: #1e293b; margin-bottom: 2px; }
+  .archive-item .desc { font-size: 12px; color: #64748b; }
+  .archive-item .status-ok { color: #10b981; margin-right: 12px; font-weight: 600; font-size: 12px; }
+
+  /* 详情状态卡片 */
+  .status-table { max-width: 600px; }
+  .status-table td { padding: 8px 12px; }
+  .status-table td:first-child { width: 120px; color: #64748b; }
 </style>
 </head>
 <body>
+
+<div id="loading-bar"></div>
 
 <aside>
   <h2>供应商合同自动化</h2>
   <div class="subtitle">SaaS / API 分销协议</div>
   <a data-nav="list" class="active" onclick="navigate('list')">📋 合同列表</a>
   <a data-nav="create" onclick="navigate('create')">➕ 新建合同</a>
-  <a data-nav="detail" onclick="navigate('detail')">📄 合同详情</a>
-  <a data-nav="preview" onclick="navigate('preview')">📑 合同预览</a>
-  <div class="section">审计</div>
-  <a data-nav="approvals" onclick="navigate('approvals')">📊 审批记录</a>
-  <a data-nav="versions" onclick="navigate('versions')">🕐 版本历史</a>
-  <a data-nav="logs" onclick="navigate('logs')">📜 操作日志</a>
-  <a data-nav="archive" onclick="navigate('archive')">📦 归档证据</a>
 </aside>
 
 <main>
@@ -162,136 +183,138 @@
     </div>
   </div>
 
-  <!-- ===== 页面：合同详情 ===== -->
+  <!-- ===== 页面：合同详情（带 Tab） ===== -->
   <div class="page" id="page-detail">
     <div class="breadcrumb"><a onclick="navigate('list')">合同列表</a> / 合同详情</div>
     <h1>合同详情</h1>
 
-    <div class="card" id="detail-status-card" style="display:none">
-      <table style="max-width:600px">
-        <tr><td style="width:120px; color:#64748b"><strong>供应商</strong></td><td><span id="d-vendor"></span></td></tr>
-        <tr><td style="color:#64748b"><strong>当前版本</strong></td><td><span id="d-version" class="version-badge"></span></td></tr>
-        <tr><td style="color:#64748b"><strong>状态</strong></td><td><span id="d-status" class="status"></span></td></tr>
-        <tr><td style="color:#64748b"><strong>当前负责人</strong></td><td><span id="d-owner">—</span></td></tr>
-      </table>
-      <div id="d-missing" class="missing" style="display:none"></div>
+    <!-- Tab 导航 -->
+    <div class="tabs">
+      <button data-tab="info" class="active" onclick="switchTab('info')">详情</button>
+      <button data-tab="preview" onclick="switchTab('preview')">📑 合同预览</button>
+      <button data-tab="approvals" onclick="switchTab('approvals')">📊 审批记录</button>
+      <button data-tab="versions" onclick="switchTab('versions')">🕐 版本历史</button>
+      <button data-tab="logs" onclick="switchTab('logs')">📜 操作日志</button>
+      <button data-tab="archive" onclick="switchTab('archive')">📦 归档证据</button>
     </div>
 
-    <!-- 提交申请 -->
-    <div class="card" id="card-submit" style="display:none">
-      <h3 style="margin-top:0">提交申请</h3>
-      <p class="hint">提交后进入 Under Review，由法务和 CEO 串行审批。</p>
-      <button class="ok" onclick="submitContract()">提交申请</button>
-      <span id="submit-msg" class="msg"></span>
-    </div>
-
-    <!-- 审批 -->
-    <div class="card" id="card-approval" style="display:none">
-      <h3 style="margin-top:0">审批（串行：法务先，CEO 后）</h3>
-      <div style="margin-bottom:12px; padding:12px; background:#f1f5f9; border-radius:6px">
-        <strong>法务（Legal_Alice）</strong><br>
-        <button class="ok" onclick="approveAs('Legal_Alice')">法务审批通过</button>
-        <button class="warn" onclick="rejectAs('Legal_Alice')">法务退回</button>
+    <!-- Tab 1：详情 -->
+    <div class="tab-content active" id="tab-info">
+      <div class="card" id="detail-status-card" style="display:none">
+        <table class="status-table">
+          <tr><td><strong>供应商</strong></td><td><span id="d-vendor"></span></td></tr>
+          <tr><td><strong>当前版本</strong></td><td><span id="d-version" class="version-badge"></span></td></tr>
+          <tr><td><strong>状态</strong></td><td><span id="d-status" class="status"></span></td></tr>
+          <tr><td><strong>当前负责人</strong></td><td><span id="d-owner">—</span></td></tr>
+        </table>
+        <div id="d-missing" class="missing" style="display:none"></div>
       </div>
-      <div style="padding:12px; background:#f1f5f9; border-radius:6px">
-        <strong>CEO（CEO_Bob）</strong><br>
-        <button class="ok" id="btn-ceo" onclick="approveAs('CEO_Bob')" disabled>CEO 审批通过</button>
-        <span id="ceo-hint" class="hint">等待法务先审批当前版本…</span>
+
+      <div class="card" id="card-submit" style="display:none">
+        <h3 style="margin-top:0">提交申请</h3>
+        <p class="hint">提交后进入 Under Review，由法务和 CEO 串行审批。</p>
+        <button class="ok" onclick="submitContract()">提交申请</button>
+        <span id="submit-msg" class="msg"></span>
       </div>
-      <div id="approval-msg" class="msg"></div>
+
+      <div class="card" id="card-approval" style="display:none">
+        <h3 style="margin-top:0">审批（串行：法务先，CEO 后）</h3>
+        <div style="margin-bottom:12px; padding:12px; background:#f1f5f9; border-radius:6px">
+          <strong>法务（Legal_Alice）</strong><br>
+          <button class="ok" onclick="approveAs('Legal_Alice')">法务审批通过</button>
+          <button class="warn" onclick="rejectAs('Legal_Alice')">法务退回</button>
+        </div>
+        <div style="padding:12px; background:#f1f5f9; border-radius:6px">
+          <strong>CEO（CEO_Bob）</strong><br>
+          <button class="ok" id="btn-ceo" onclick="approveAs('CEO_Bob')" disabled>CEO 审批通过</button>
+          <span id="ceo-hint" class="hint">等待法务先审批当前版本…</span>
+        </div>
+        <div id="approval-msg" class="msg"></div>
+      </div>
+
+      <div class="card" id="card-edit" style="display:none">
+        <h3 style="margin-top:0">修改合同（当前状态允许编辑）</h3>
+        <p class="hint">任意字段变更都会让版本 +1，旧审批自动失效。只提交有变化的字段。</p>
+        <div class="form-row"><label>平台分成比例</label><input id="e_platform_share" type="number" step="0.01"></div>
+        <div class="form-row"><label>供应商分成比例</label><input id="e_vendor_share" type="number" step="0.01"></div>
+        <div class="form-row"><label>退款处理</label><input id="e_refund_policy"></div>
+        <div class="form-row"><label>收入计算口径</label><input id="e_revenue_definition"></div>
+        <div class="form-row"><label>结算周期</label><input id="e_settlement_cycle"></div>
+        <div class="form-row"><label>签字人邮箱</label><input id="e_signer_email"></div>
+        <button onclick="submitEdit()">提交修改</button>
+        <span id="edit-msg" class="msg"></span>
+      </div>
+
+      <div class="card" id="card-send" style="display:none">
+        <h3 style="margin-top:0">发起签署</h3>
+        <p class="hint">合同已获两位审批人同版本通过，可以正式发给供应商签署。</p>
+        <button onclick="sendForSignature()">发起签署</button>
+      </div>
+
+      <div class="card" id="card-sign" style="display:none">
+        <h3 style="margin-top:0">电子签（Mock）</h3>
+        <p class="hint">当前处于 Sent for Signature，等待签署人动作。</p>
+        <button class="ok" onclick="mockSign()">模拟签署完成</button>
+        <button class="danger" onclick="mockDecline()">模拟拒签</button>
+        <button class="warn" onclick="mockExpire()">模拟过期</button>
+      </div>
+
+      <div class="card" id="card-reset" style="display:none">
+        <h3 style="margin-top:0">测试完成</h3>
+        <p class="hint">本轮流程已结束（Active / Declined / Expired）。可以新建一笔合同重新测试。</p>
+        <button class="ok" onclick="navigate('create')">➕ 新建一笔合同</button>
+        <button class="secondary" onclick="navigate('list')">返回列表</button>
+      </div>
+
+      <div id="detail-actions-msg" class="msg"></div>
     </div>
 
-    <!-- 编辑合同 -->
-    <div class="card" id="card-edit" style="display:none">
-      <h3 style="margin-top:0">修改合同（当前状态允许编辑）</h3>
-      <p class="hint">任意字段变更都会让版本 +1，旧审批自动失效。只提交有变化的字段。</p>
-      <div class="form-row"><label>平台分成比例</label><input id="e_platform_share" type="number" step="0.01"></div>
-      <div class="form-row"><label>供应商分成比例</label><input id="e_vendor_share" type="number" step="0.01"></div>
-      <div class="form-row"><label>退款处理</label><input id="e_refund_policy"></div>
-      <div class="form-row"><label>收入计算口径</label><input id="e_revenue_definition"></div>
-      <div class="form-row"><label>结算周期</label><input id="e_settlement_cycle"></div>
-      <div class="form-row"><label>签字人邮箱</label><input id="e_signer_email"></div>
-      <button onclick="submitEdit()">提交修改</button>
-      <span id="edit-msg" class="msg"></span>
+    <!-- Tab 2：合同预览 -->
+    <div class="tab-content" id="tab-preview">
+      <div class="toolbar">
+        <button onclick="loadPreview()">刷新预览</button>
+      </div>
+      <div id="preview-content"><div class="empty">点击「刷新预览」加载合同草稿。</div></div>
     </div>
 
-    <!-- 合同操作 -->
-    <div class="card" id="card-send" style="display:none">
-      <h3 style="margin-top:0">发起签署</h3>
-      <p class="hint">合同已获两位审批人同版本通过，可以正式发给供应商签署。</p>
-      <button onclick="sendForSignature()">发起签署</button>
+    <!-- Tab 3：审批记录 -->
+    <div class="tab-content" id="tab-approvals">
+      <div class="toolbar"><button onclick="loadApprovals()">刷新</button></div>
+      <div class="card">
+        <table id="approvals-table">
+          <thead><tr><th>审批人</th><th>版本</th><th>决定</th><th>意见</th><th>有效</th><th>时间</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
 
-    <div class="card" id="card-sign" style="display:none">
-      <h3 style="margin-top:0">电子签（Mock）</h3>
-      <p class="hint">当前处于 Sent for Signature，等待签署人动作。</p>
-      <button class="ok" onclick="mockSign()">模拟签署完成</button>
-      <button class="danger" onclick="mockDecline()">模拟拒签</button>
-      <button class="warn" onclick="mockExpire()">模拟过期</button>
+    <!-- Tab 4：版本历史 -->
+    <div class="tab-content" id="tab-versions">
+      <div class="toolbar"><button onclick="loadVersions()">刷新</button></div>
+      <div class="card">
+        <table id="versions-table">
+          <thead><tr><th>版本</th><th>创建时间</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
 
-    <div class="card" id="card-reset" style="display:none">
-      <h3 style="margin-top:0">测试完成</h3>
-      <p class="hint">本轮流程已结束（Active / Declined / Expired）。可以新建一笔合同重新测试。</p>
-      <button class="ok" onclick="navigate('create')">➕ 新建一笔合同</button>
-      <button class="secondary" onclick="navigate('list')">返回列表</button>
+    <!-- Tab 5：操作日志 -->
+    <div class="tab-content" id="tab-logs">
+      <div class="toolbar"><button onclick="loadLogs()">刷新</button></div>
+      <div class="card">
+        <div class="logs" id="logs-box">（暂无日志）</div>
+      </div>
     </div>
 
-    <div id="detail-actions-msg" class="msg"></div>
-  </div>
-
-  <!-- ===== 页面：合同预览 ===== -->
-  <div class="page" id="page-preview">
-    <div class="breadcrumb"><a onclick="navigate('list')">合同列表</a> / <a onclick="navigate('detail')">合同详情</a> / 合同预览</div>
-    <h1>合同草稿预览</h1>
-    <div class="toolbar">
-      <button onclick="loadPreview()">刷新预览</button>
-      <button class="secondary" onclick="navigate('detail')">返回详情</button>
+    <!-- Tab 6：归档证据 -->
+    <div class="tab-content" id="tab-archive">
+      <div class="toolbar"><button onclick="loadArchive()">刷新</button></div>
+      <div class="card" id="archive-card" style="padding:0">
+        <div class="empty">签署完成后，这里会显示应归档的证据文件。</div>
+      </div>
     </div>
-    <div id="preview-content"><div class="empty">请先选择一笔合同。</div></div>
-  </div>
 
-  <!-- ===== 页面：审批记录 ===== -->
-  <div class="page" id="page-approvals">
-    <div class="breadcrumb"><a onclick="navigate('detail')">合同详情</a> / 审批记录</div>
-    <h1>审批记录</h1>
-    <div class="card">
-      <table id="approvals-table">
-        <thead><tr><th>审批人</th><th>版本</th><th>决定</th><th>意见</th><th>有效</th><th>时间</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ===== 页面：版本历史 ===== -->
-  <div class="page" id="page-versions">
-    <div class="breadcrumb"><a onclick="navigate('detail')">合同详情</a> / 版本历史</div>
-    <h1>版本历史</h1>
-    <div class="card">
-      <table id="versions-table">
-        <thead><tr><th>版本</th><th>创建时间</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ===== 页面：操作日志 ===== -->
-  <div class="page" id="page-logs">
-    <div class="breadcrumb"><a onclick="navigate('detail')">合同详情</a> / 操作日志</div>
-    <h1>操作日志</h1>
-    <div class="card">
-      <div class="logs" id="logs-box">（暂无日志）</div>
-    </div>
-  </div>
-
-  <!-- ===== 页面：归档证据 ===== -->
-  <div class="page" id="page-archive">
-    <div class="breadcrumb"><a onclick="navigate('detail')">合同详情</a> / 归档证据</div>
-    <h1>归档证据</h1>
-    <div class="card">
-      <button onclick="loadArchive()">刷新</button>
-      <div id="archive-box" style="margin-top:12px"></div>
-    </div>
   </div>
 
 </main>
@@ -318,13 +341,32 @@ const OWNER_BY_STATUS = {
 const EDITABLE_STATES = ["Draft", "Needs Information", "Returned"];
 const TERMINAL_STATES = ["Active", "Declined", "Expired"];
 
+/* ===== 顶部加载条 ===== */
+let loadingTimer = null;
+function loadingStart() {
+  const bar = document.getElementById("loading-bar");
+  bar.className = "";
+  bar.style.width = "0%";
+  requestAnimationFrame(() => { bar.className = "active"; });
+}
+function loadingDone() {
+  const bar = document.getElementById("loading-bar");
+  bar.className = "done";
+  setTimeout(() => { bar.style.width = "0%"; bar.className = ""; }, 400);
+}
+
 async function api(path, method="GET", body=null) {
-  const opts = { method, headers: { "Content-Type": "application/json" } };
-  if (body) opts.body = JSON.stringify(body);
-  const r = await fetch(API + path, opts);
-  const data = await r.json();
-  if (!r.ok) throw new Error(data.detail || JSON.stringify(data));
-  return data;
+  loadingStart();
+  try {
+    const opts = { method, headers: { "Content-Type": "application/json" } };
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(API + path, opts);
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || JSON.stringify(data));
+    return data;
+  } finally {
+    loadingDone();
+  }
 }
 
 function show(id, visible) {
@@ -349,11 +391,21 @@ function navigate(page) {
 
   if (page === "list") loadContractList();
   if (page === "detail") refreshContract();
-  if (page === "preview") loadPreview();
-  if (page === "approvals") loadApprovals();
-  if (page === "versions") loadVersions();
-  if (page === "logs") loadLogs();
-  if (page === "archive") loadArchive();
+}
+
+/* ===== Tab 切换 ===== */
+function switchTab(tab) {
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.remove("active"));
+  document.querySelector(`.tabs button[data-tab="${tab}"]`).classList.add("active");
+  document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+  const el = document.getElementById("tab-" + tab);
+  if (el) el.classList.add("active");
+
+  if (tab === "preview") loadPreview();
+  if (tab === "approvals") loadApprovals();
+  if (tab === "versions") loadVersions();
+  if (tab === "logs") loadLogs();
+  if (tab === "archive") loadArchive();
 }
 
 /* ===== 合同列表 ===== */
@@ -372,7 +424,7 @@ async function loadContractList() {
         <td><span class="status ${STATUS_CLASS[r.status] || ""}">${r.status}</span></td>
         <td>V${r.version}</td>
         <td>${r.updated_at || ""}</td>
-        <td><button onclick="openContract('${r.id}')">打开</button></td>
+        <td><button class="small" onclick="openContract('${r.id}')">打开</button></td>
       </tr>
     `).join("");
   } catch (e) {
@@ -383,6 +435,8 @@ async function loadContractList() {
 function openContract(id) {
   currentContractId = id;
   navigate("detail");
+  // 默认切到详情 tab
+  setTimeout(() => switchTab("info"), 50);
 }
 
 /* ===== 新建合同 ===== */
@@ -401,7 +455,7 @@ async function createContract() {
     const res = await api("/contracts", "POST", payload);
     currentContractId = res.id;
     setMsg("create-msg", "✅ 创建成功，正在跳转…");
-    setTimeout(() => navigate("detail"), 500);
+    setTimeout(() => { navigate("detail"); setTimeout(() => switchTab("info"), 50); }, 500);
   } catch (e) {
     setMsg("create-msg", "❌ " + e.message, true);
   }
@@ -410,13 +464,8 @@ async function createContract() {
 /* ===== 合同详情 ===== */
 async function refreshContract() {
   if (!currentContractId) {
-    show("detail-status-card", false);
-    show("card-submit", false);
-    show("card-approval", false);
-    show("card-edit", false);
-    show("card-send", false);
-    show("card-sign", false);
-    show("card-reset", false);
+    ["detail-status-card","card-submit","card-approval","card-edit","card-send","card-sign","card-reset"]
+      .forEach(id => show(id, false));
     return;
   }
   try {
@@ -439,10 +488,8 @@ async function refreshContract() {
       mBox.style.display = "none";
     }
 
-    // 提交申请
     show("card-submit", c.status === "Draft" || c.status === "Needs Information" || c.status === "Returned");
 
-    // 审批
     const underReview = c.status === "Under Review";
     show("card-approval", underReview);
     let legalApproved = false;
@@ -462,7 +509,6 @@ async function refreshContract() {
       ceoHint.innerText = legalApproved ? "法务已批当前版本，可以审批。" : "等待法务先审批当前版本…";
     }
 
-    // 编辑
     const canEdit = EDITABLE_STATES.includes(c.status);
     show("card-edit", canEdit);
     if (canEdit) {
@@ -472,11 +518,8 @@ async function refreshContract() {
       });
     }
 
-    // 发起签署
     show("card-send", c.status === "Approved to Send");
-    // 电子签
     show("card-sign", c.status === "Sent for Signature");
-    // 重来
     show("card-reset", TERMINAL_STATES.includes(c.status));
 
   } catch (e) {
@@ -655,14 +698,41 @@ async function loadLogs() {
   }
 }
 
+/* ===== 归档证据（新样式） ===== */
+const ARCHIVE_META = [
+  { key: "contract_preview", name: "合同预览", desc: "合同 HTML/PDF 快照，记录签署时的合同内容", tab: "preview" },
+  { key: "approvals",        name: "审批记录", desc: "法务与 CEO 的审批人、版本、意见、时间",   tab: "approvals" },
+  { key: "signature_cert",   name: "签署证书", desc: "签署人、CC、签署时间、签署状态凭证（Mock）", tab: null },
+  { key: "schedule_a",       name: "Schedule A", desc: "商业条款快照：分成、结算、退款、税务",   tab: "preview" },
+  { key: "audit_logs",       name: "操作日志", desc: "从提交到签署的完整操作时间线",           tab: "logs" }
+];
+
 async function loadArchive() {
-  const box = document.getElementById("archive-box");
-  if (!currentContractId) { box.innerHTML = "请先打开一笔合同。"; return; }
+  const card = document.getElementById("archive-card");
+  if (!currentContractId) {
+    card.innerHTML = `<div class="empty">请先打开一笔合同。</div>`;
+    return;
+  }
   try {
     const r = await api("/contracts/" + currentContractId + "/archive");
-    box.innerHTML = `<div class="card">📦 应归档文件：<ul>${r.archive_items.map(i => `<li>${i}</li>`).join("")}</ul></div>`;
+    const items = ARCHIVE_META.map(m => {
+      const present = r.archive_items.includes(m.key);
+      const btn = m.tab
+        ? `<button class="small secondary" onclick="switchTab('${m.tab}')">查看</button>`
+        : `<span class="hint" style="padding:0">（Mock）</span>`;
+      return `
+        <div class="archive-item">
+          <div class="info">
+            <div class="name">${present ? "✅ " : "⏳ "}${m.name}</div>
+            <div class="desc">${m.desc}</div>
+          </div>
+          <div>${btn}</div>
+        </div>
+      `;
+    }).join("");
+    card.innerHTML = items;
   } catch (e) {
-    box.innerHTML = `<div class="empty">⚠️ ${e.message}</div>`;
+    card.innerHTML = `<div class="empty">⚠️ ${e.message}</div>`;
   }
 }
 
