@@ -1,5 +1,7 @@
 # 供应商合同自动化 Demo
 
+> **在线 Demo**：https://vendor-contract-automation.vercel.app
+
 SaaS / API 供应商分销协议 · 从申请到可签 · 全流程可追溯
 
 一个可试运行的内部小工具，把「供应商申请 → 信息校验 → 补 Schedule A → 生成合同草稿 → 双人审批 → 可发签 → Mock 签署 → 归档」这条链路变成一个可点、可卡、可追溯的流程。
@@ -65,28 +67,49 @@ SaaS / API 供应商分销协议 · 从申请到可签 · 全流程可追溯
 | 层 | 选型 |
 |---|---|
 | 后端 | Python + FastAPI |
-| 数据库 | SQLite（本地文件） |
-| 前端 | 原生 HTML + JS（单页多视图） |
-| 部署 | Render |
+| 数据库 | Supabase（PostgreSQL） |
+| 前端 | 原生 HTML + JS（单页多视图 + Tab） |
+| 部署 | Vercel |
 | 电子签 | Mock |
 | 付款 / 邮件 | Mock |
 
 ---
 
-## 四、本地运行 
+## 四、界面结构
+
+左侧仅 2 个主菜单：
+
+- **📋 合同列表**
+- **➕ 新建合同**
+
+点击合同列表里的任意一笔，进入**合同详情页**，详情页通过 Tab 切换 6 个视图：
+
+| Tab | 说明 |
+|---|---|
+| 详情 | 状态 + 按状态显示的操作按钮 |
+| 📑 合同预览 | 合同草稿 HTML 预览，缺失字段显示 `[待补充]` |
+| 📊 审批记录 | 谁在哪个版本批过、是否有效 |
+| 🕐 版本历史 | 每次版本变更的快照 |
+| 📜 操作日志 | 完整操作时间线 |
+| 📦 归档证据 | 签署完成后应归档的 5 项材料 |
+
+---
+
+## 五、本地运行
+
 ```bash
 # 1. 安装依赖
 pip install -r requirements.txt
 
-# 2. 启动服务
+# 2. 配置 .env
+# DATABASE_URL=postgresql://postgres.xxx:密码@aws-0-xxx.pooler.supabase.com:6543/postgres
+
+# 3. 启动服务
 uvicorn app.main:app --reload --port 8000
 
-# 3. 浏览器打开
+# 4. 浏览器打开
 http://127.0.0.1:8000/
-
-
-##五、真实实现 vs Mock 边界
-
+六、真实实现 vs Mock 边界
 ✅ 真实实现
 供应商申请表单录入
 
@@ -104,9 +127,9 @@ Schedule A 结构化字段与必填校验
 
 合同草稿 HTML 预览
 
-审批记录 / 版本历史 / 操作日志
+审批记录 / 版本历史 / 操作日志 / 归档证据
 
-归档证据清单
+Supabase 数据持久化
 
 🔶 Mock 部分
 电子签（签署、拒签、过期均为按钮模拟）
@@ -119,12 +142,13 @@ Schedule A 结构化字段与必填校验
 
 供应商外部登录
 
-##六、测试路径（建议按顺序）
-打开链接 → 「新建合同」→ 直接点「创建合同」（表单已预填模拟数据）
+七、测试路径（建议按顺序）
+主流程
+打开链接 → 左侧「新建合同」→ 直接点「创建合同」（表单已预填模拟数据）
 
-「提交申请」→ 状态变 Under Review
+自动跳到合同详情页 → 「提交申请」→ 状态变 Under Review
 
-先点「CEO 审批通过」→ 按钮为灰色，不可点（串行规则）
+先点「CEO 审批通过」→ 按钮灰色，不可点（串行规则）
 
 点「法务审批通过」→ CEO 按钮变亮
 
@@ -134,7 +158,7 @@ Schedule A 结构化字段与必填校验
 
 「模拟签署完成」→ 状态变 Active
 
-查看「合同预览」「审批记录」「版本历史」「操作日志」「归档证据」
+依次查看各 Tab：合同预览 / 审批记录 / 版本历史 / 操作日志 / 归档证据
 
 演示版本变更与审批失效
 新建合同 → 提交 → 法务退回
@@ -151,40 +175,3 @@ Schedule A 结构化字段与必填校验
 提交申请 → 状态变 Needs Information，列出缺失字段
 
 补齐后才能进入审批
-
-##七、项目结构
-text
-vendor-contract-automation/
-├── app/
-│   ├── __init__.py
-│   ├── main.py              # FastAPI 入口
-│   ├── config.py            # 审批人配置
-│   ├── db.py                # SQLite 连接与建表
-│   ├── state_machine.py     # 状态机
-│   ├── validation.py        # Schedule A 校验
-│   ├── versioning.py        # 版本号与快照
-│   ├── approval.py          # 串行审批
-│   ├── audit.py             # 操作日志
-│   ├── signature.py         # Mock 电子签
-│   ├── routes.py            # API 路由
-│   └── static/
-│       └── index.html       # 前端单页
-├── tests/                   # 单元测试
-│   ├── test_state_machine.py
-│   ├── test_validation.py
-│   ├── test_versioning.py
-│   ├── test_approval.py
-│   ├── test_audit.py
-│   └── test_signature.py
-├── requirements.txt
-├── render.yaml
-└── README.md
-
-
-##八、已知限制
-
-使用 SQLite 存储，Render 免费版重启后数据会重置。面试演示时重新走一遍流程即可。
-
-电子签、付款、邮件为 Mock，接真实接口时替换对应模块即可。
-
-Render 免费版有冷启动，首次访问可能需要 10~30 秒。

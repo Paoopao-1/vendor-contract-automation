@@ -373,6 +373,11 @@ function show(id, visible) {
   const el = document.getElementById(id);
   if (el) el.style.display = visible ? "block" : "none";
 }
+function formatTime(s) {
+  if (!s) return "";
+  return String(s).replace("T", " ").split(".")[0];
+}
+
 function setMsg(id, text, isErr=false) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -423,7 +428,7 @@ async function loadContractList() {
         <td>${r.vendor_name || "（未命名）"}</td>
         <td><span class="status ${STATUS_CLASS[r.status] || ""}">${r.status}</span></td>
         <td>V${r.version}</td>
-        <td>${r.updated_at || ""}</td>
+        ${formatTime(r.updated_at)}
         <td><button class="small" onclick="openContract('${r.id}')">打开</button></td>
       </tr>
     `).join("");
@@ -665,7 +670,7 @@ async function loadApprovals() {
     const rows = await api("/contracts/" + currentContractId + "/approvals");
     tbody.innerHTML = rows.map(r =>
       `<tr><td>${r.approver}</td><td>V${r.version}</td><td>${r.decision}</td>
-       <td>${r.comment||""}</td><td>${r.is_valid ? "✅" : "❌"}</td><td>${r.created_at||""}</td></tr>`
+       <td>${r.comment||""}</td><td>${r.is_valid ? "✅" : "❌"}</td><td>${formatTime(r.created_at)}</td></tr>`
     ).join("") || `<tr><td colspan="6" class="empty">暂无审批记录</td></tr>`;
   } catch (e) {
     tbody.innerHTML = `<tr><td colspan="6" class="empty">加载失败：${e.message}</td></tr>`;
