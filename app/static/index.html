@@ -7,12 +7,10 @@
   * { box-sizing: border-box; }
   body { margin: 0; font-family: -apple-system, "Segoe UI", sans-serif; color: #333; display: flex; height: 100vh; overflow: hidden; }
 
-  /* 顶部加载条 */
   #loading-bar { position: fixed; top: 0; left: 0; height: 3px; width: 0%; background: #3b82f6; transition: width 0.3s; z-index: 9999; }
   #loading-bar.active { width: 70%; }
   #loading-bar.done { width: 100%; background: #10b981; }
 
-  /* 左侧导航 */
   aside { width: 220px; background: #1e293b; color: #cbd5e1; padding: 16px 0; flex-shrink: 0; overflow-y: auto; }
   aside h2 { color: white; font-size: 15px; padding: 0 16px; margin: 0 0 8px 0; }
   aside .subtitle { color: #64748b; font-size: 11px; padding: 0 16px; margin-bottom: 16px; }
@@ -20,7 +18,6 @@
   aside a:hover { background: #334155; color: white; }
   aside a.active { background: #334155; color: white; border-left-color: #3b82f6; }
 
-  /* 右侧内容区 */
   main { flex: 1; overflow-y: auto; padding: 24px 32px; background: #f8fafc; }
   .page { display: none; }
   .page.active { display: block; }
@@ -31,7 +28,6 @@
   .card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
   .card-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
 
-  /* 状态徽章 */
   .status { display: inline-block; padding: 4px 12px; border-radius: 12px; font-weight: bold; font-size: 13px; }
   .Draft { background: #e0e0e0; color: #555; }
   .NeedsInfo { background: #fff3cd; color: #856404; }
@@ -45,7 +41,6 @@
   .Expired { background: #e2e3e5; color: #383d41; }
   .SignedUnpaid { background: #ffeaa7; color: #856404; }
 
-  /* 按钮 */
   button { padding: 8px 14px; margin: 0; border: none; border-radius: 6px; background: #3b82f6; color: white; cursor: pointer; font-size: 14px; }
   button:hover:not(:disabled) { background: #2563eb; }
   button:disabled { background: #cbd5e1; cursor: not-allowed; }
@@ -55,53 +50,44 @@
   button.secondary { background: #64748b; } button.secondary:hover:not(:disabled) { background: #475569; }
   button.small { padding: 4px 10px; font-size: 12px; }
 
-  /* 表单 */
   input, select, textarea { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px; width: 100%; font-family: inherit; }
   .form-row { display: grid; grid-template-columns: 160px 1fr; gap: 12px; align-items: center; margin-bottom: 10px; }
   .form-row label { font-size: 14px; color: #475569; }
   .checkbox-row { display: flex; align-items: center; gap: 8px; }
   .checkbox-row input { width: auto; }
 
-  /* 表格 */
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
-th:nth-child(4), td:nth-child(4) { min-width: 180px; }
+  th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; white-space: nowrap; vertical-align: middle; }
   th { background: #f1f5f9; font-weight: 600; color: #334155; }
   tr:hover { background: #f8fafc; }
 
-  /* 日志 */
   .logs { font-family: ui-monospace, monospace; font-size: 12px; background: #1e293b; color: #cbd5e1; padding: 14px; border-radius: 6px; max-height: 400px; overflow-y: auto; }
   .logs div { padding: 4px 0; border-bottom: 1px solid #334155; }
   .logs b { color: #60a5fa; }
 
-  /* 提示 */
   .missing { background: #fef3c7; padding: 10px 14px; border-left: 4px solid #f59e0b; margin: 12px 0; border-radius: 4px; font-size: 13px; }
   .hint { color: #94a3b8; font-size: 13px; font-style: italic; padding: 8px 0; }
   .msg { font-size: 13px; margin-top: 8px; min-height: 20px; }
   .msg.ok { color: #059669; }
   .msg.err { color: #dc2626; }
 
-  /* 版本徽章 */
   .version-badge { background: #3b82f6; color: white; padding: 2px 10px; border-radius: 10px; font-size: 12px; font-weight: bold; }
 
-  /* 合同预览样式 */
   .contract-paper { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 40px; max-width: 800px; margin: 0 auto; font-family: Georgia, serif; line-height: 1.8; }
   .contract-paper h1 { text-align: center; border: none; font-size: 22px; margin-bottom: 8px; }
   .contract-paper .meta { text-align: center; color: #64748b; font-size: 12px; margin-bottom: 30px; }
   .contract-paper h3 { color: #1e293b; font-size: 15px; margin-top: 24px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; }
   .contract-paper table { font-size: 13px; margin: 10px 0; }
-  .contract-paper td { padding: 6px 10px; }
+  .contract-paper td { padding: 6px 10px; white-space: normal; }
   .contract-paper td:first-child { width: 180px; color: #64748b; }
 
   .empty { color: #94a3b8; padding: 24px; text-align: center; font-size: 14px; }
 
-  /* 顶部工具栏 */
   .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; }
   .breadcrumb { color: #64748b; font-size: 13px; margin-bottom: 12px; }
   .breadcrumb a { color: #3b82f6; cursor: pointer; text-decoration: none; }
   .breadcrumb a:hover { text-decoration: underline; }
 
-  /* Tab 导航 */
   .tabs { display: flex; gap: 4px; border-bottom: 2px solid #e2e8f0; margin-bottom: 20px; }
   .tabs button { background: none; color: #64748b; border-radius: 0; padding: 10px 16px; font-size: 14px; border-bottom: 2px solid transparent; margin-bottom: -2px; }
   .tabs button:hover { background: #f1f5f9; color: #334155; }
@@ -110,15 +96,12 @@ th:nth-child(4), td:nth-child(4) { min-width: 180px; }
   .tab-content { display: none; }
   .tab-content.active { display: block; }
 
-  /* 归档证据卡片 */
   .archive-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #e2e8f0; }
   .archive-item:last-child { border-bottom: none; }
   .archive-item .info { flex: 1; }
   .archive-item .name { font-weight: 600; color: #1e293b; margin-bottom: 2px; }
-  .archive-item .desc { font-size: 12px; color: #64748b; }
-  .archive-item .status-ok { color: #10b981; margin-right: 12px; font-weight: 600; font-size: 12px; }
+  .archive-item .desc { font-size: 12px; color: #64748b; white-space: normal; }
 
-  /* 详情状态卡片 */
   .status-table { max-width: 600px; }
   .status-table td { padding: 8px 12px; }
   .status-table td:first-child { width: 120px; color: #64748b; }
@@ -137,7 +120,6 @@ th:nth-child(4), td:nth-child(4) { min-width: 180px; }
 
 <main>
 
-  <!-- ===== 页面：合同列表 ===== -->
   <div class="page active" id="page-list">
     <h1>合同列表</h1>
     <div class="toolbar">
@@ -152,7 +134,6 @@ th:nth-child(4), td:nth-child(4) { min-width: 180px; }
     </div>
   </div>
 
-  <!-- ===== 页面：新建合同 ===== -->
   <div class="page" id="page-create">
     <h1>新建供应商合同</h1>
     <div class="card">
@@ -184,12 +165,10 @@ th:nth-child(4), td:nth-child(4) { min-width: 180px; }
     </div>
   </div>
 
-  <!-- ===== 页面：合同详情（带 Tab） ===== -->
   <div class="page" id="page-detail">
     <div class="breadcrumb"><a onclick="navigate('list')">合同列表</a> / 合同详情</div>
     <h1>合同详情</h1>
 
-    <!-- Tab 导航 -->
     <div class="tabs">
       <button data-tab="info" class="active" onclick="switchTab('info')">详情</button>
       <button data-tab="preview" onclick="switchTab('preview')">📑 合同预览</button>
@@ -199,7 +178,6 @@ th:nth-child(4), td:nth-child(4) { min-width: 180px; }
       <button data-tab="archive" onclick="switchTab('archive')">📦 归档证据</button>
     </div>
 
-    <!-- Tab 1：详情 -->
     <div class="tab-content active" id="tab-info">
       <div class="card" id="detail-status-card" style="display:none">
         <table class="status-table">
@@ -270,7 +248,6 @@ th:nth-child(4), td:nth-child(4) { min-width: 180px; }
       <div id="detail-actions-msg" class="msg"></div>
     </div>
 
-    <!-- Tab 2：合同预览 -->
     <div class="tab-content" id="tab-preview">
       <div class="toolbar">
         <button onclick="loadPreview()">刷新预览</button>
@@ -278,7 +255,6 @@ th:nth-child(4), td:nth-child(4) { min-width: 180px; }
       <div id="preview-content"><div class="empty">点击「刷新预览」加载合同草稿。</div></div>
     </div>
 
-    <!-- Tab 3：审批记录 -->
     <div class="tab-content" id="tab-approvals">
       <div class="toolbar"><button onclick="loadApprovals()">刷新</button></div>
       <div class="card">
@@ -289,7 +265,6 @@ th:nth-child(4), td:nth-child(4) { min-width: 180px; }
       </div>
     </div>
 
-    <!-- Tab 4：版本历史 -->
     <div class="tab-content" id="tab-versions">
       <div class="toolbar"><button onclick="loadVersions()">刷新</button></div>
       <div class="card">
@@ -300,7 +275,6 @@ th:nth-child(4), td:nth-child(4) { min-width: 180px; }
       </div>
     </div>
 
-    <!-- Tab 5：操作日志 -->
     <div class="tab-content" id="tab-logs">
       <div class="toolbar"><button onclick="loadLogs()">刷新</button></div>
       <div class="card">
@@ -308,7 +282,6 @@ th:nth-child(4), td:nth-child(4) { min-width: 180px; }
       </div>
     </div>
 
-    <!-- Tab 6：归档证据 -->
     <div class="tab-content" id="tab-archive">
       <div class="toolbar"><button onclick="loadArchive()">刷新</button></div>
       <div class="card" id="archive-card" style="padding:0">
@@ -342,7 +315,20 @@ const OWNER_BY_STATUS = {
 const EDITABLE_STATES = ["Draft", "Needs Information", "Returned"];
 const TERMINAL_STATES = ["Active", "Declined", "Expired"];
 
-/* ===== 顶部加载条 ===== */
+/* ===== 工具函数 ===== */
+function formatTime(s) {
+  if (!s) return "";
+  return String(s).replace("T", " ").split(".")[0];
+}
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 let loadingTimer = null;
 function loadingStart() {
   const bar = document.getElementById("loading-bar");
@@ -374,11 +360,6 @@ function show(id, visible) {
   const el = document.getElementById(id);
   if (el) el.style.display = visible ? "block" : "none";
 }
-function formatTime(s) {
-  if (!s) return "";
-  return String(s).replace("T", " ").split(".")[0];
-}
-
 function setMsg(id, text, isErr=false) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -399,10 +380,10 @@ function navigate(page) {
   if (page === "detail") refreshContract();
 }
 
-/* ===== Tab 切换 ===== */
 function switchTab(tab) {
   document.querySelectorAll(".tabs button").forEach(b => b.classList.remove("active"));
-  document.querySelector(`.tabs button[data-tab="${tab}"]`).classList.add("active");
+  const btn = document.querySelector(`.tabs button[data-tab="${tab}"]`);
+  if (btn) btn.classList.add("active");
   document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
   const el = document.getElementById("tab-" + tab);
   if (el) el.classList.add("active");
@@ -417,31 +398,32 @@ function switchTab(tab) {
 /* ===== 合同列表 ===== */
 async function loadContractList() {
   const tbody = document.querySelector("#contract-list-table tbody");
-  tbody.innerHTML = `<tr><td colspan="5" class="empty">加载中…</td></tr>`;
+  tbody.innerHTML = '<tr><td colspan="5" class="empty">加载中…</td></tr>';
   try {
     const rows = await api("/contracts");
     if (!rows.length) {
-      tbody.innerHTML = `<tr><td colspan="5" class="empty">暂无合同，点右上角「新建合同」开始。</td></tr>`;
+      tbody.innerHTML = '<tr><td colspan="5" class="empty">暂无合同，点右上角「新建合同」开始。</td></tr>';
       return;
     }
-    tbody.innerHTML = rows.map(r => `
-      <tr>
-        <td>${r.vendor_name || "（未命名）"}</td>
-        <td><span class="status ${STATUS_CLASS[r.status] || ""}">${r.status}</span></td>
-        <td>V${r.version}</td>
-        ${formatTime(r.updated_at)}
-        <td><button class="small" onclick="openContract('${r.id}')">打开</button></td>
-      </tr>
-    `).join("");
+    let html = "";
+    for (const r of rows) {
+      html += "<tr>";
+      html += "<td>" + esc(r.vendor_name || "（未命名）") + "</td>";
+      html += "<td><span class='status " + (STATUS_CLASS[r.status] || "") + "'>" + esc(r.status) + "</span></td>";
+      html += "<td>V" + r.version + "</td>";
+      html += "<td>" + esc(formatTime(r.updated_at)) + "</td>";
+      html += "<td><button class='small' onclick=\"openContract('" + r.id + "')\">打开</button></td>";
+      html += "</tr>";
+    }
+    tbody.innerHTML = html;
   } catch (e) {
-    tbody.innerHTML = `<tr><td colspan="5" class="empty">加载失败：${e.message}</td></tr>`;
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">加载失败：' + esc(e.message) + '</td></tr>';
   }
 }
 
 function openContract(id) {
   currentContractId = id;
   navigate("detail");
-  // 默认切到详情 tab
   setTimeout(() => switchTab("info"), 50);
 }
 
@@ -575,7 +557,7 @@ async function submitEdit() {
     const r = await api("/contracts/" + currentContractId + "/update", "POST",
       { operator: "Biz", values: values });
     if (r.changed_fields && r.changed_fields.length) {
-      setMsg("edit-msg", `🔁 已修改字段：${r.changed_fields.join("、")}，版本 -> V${r.version}，旧审批失效`);
+      setMsg("edit-msg", "🔁 已修改字段：" + r.changed_fields.join("、") + "，版本 -> V" + r.version + "，旧审批失效");
     } else {
       setMsg("edit-msg", "ℹ️ 无实际变更，版本未变");
     }
@@ -623,71 +605,93 @@ async function mockExpire() {
 async function loadPreview() {
   const box = document.getElementById("preview-content");
   if (!currentContractId) {
-    box.innerHTML = `<div class="empty">请先在合同列表里打开一笔合同。</div>`;
+    box.innerHTML = '<div class="empty">请先在合同列表里打开一笔合同。</div>';
     return;
   }
   try {
     const p = await api("/contracts/" + currentContractId + "/preview");
     const sa = p.schedule_a;
     const sg = p.signer;
-    box.innerHTML = `
-      <div class="contract-paper">
-        <h1>${p.title}</h1>
-        <div class="meta">合同版本 V${p.version} · 状态 ${p.status} · 生成时间 ${p.generated_at}</div>
+    let saRows = "";
+    Object.entries(sa).forEach(([k,v]) => { saRows += "<tr><td>" + esc(k) + "</td><td>" + esc(v) + "</td></tr>"; });
+    let sgRows = "";
+    Object.entries(sg).forEach(([k,v]) => { sgRows += "<tr><td>" + esc(k) + "</td><td>" + esc(v) + "</td></tr>"; });
 
-        <h3>甲乙双方</h3>
-        <table>
-          <tr><td>甲方</td><td>${p.party_a}</td></tr>
-          <tr><td>乙方</td><td>${p.party_b}</td></tr>
-          <tr><td>乙方注册地</td><td>${p.party_b_country}</td></tr>
-          <tr><td>乙方注册地址</td><td>${p.party_b_address}</td></tr>
-        </table>
+    let footer = "";
+    if (p.missing_fields && p.missing_fields.length) {
+      footer = '<div class="missing">⚠️ 本预览存在缺失字段，不可发签：' + esc(p.missing_fields.join("、")) + '</div>';
+    } else {
+      footer = '<div class="hint">✅ Schedule A 字段齐全，可以进入审批流程。</div>';
+    }
 
-        <h3>Schedule A · 商业条款</h3>
-        <table>
-          ${Object.entries(sa).map(([k,v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join("")}
-        </table>
-
-        <h3>签字人信息</h3>
-        <table>
-          ${Object.entries(sg).map(([k,v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join("")}
-        </table>
-
-        ${p.missing_fields && p.missing_fields.length
-          ? `<div class="missing">⚠️ 本预览存在缺失字段，不可发签：${p.missing_fields.join("、")}</div>`
-          : `<div class="hint">✅ Schedule A 字段齐全，可以进入审批流程。</div>`}
-      </div>
-    `;
+    box.innerHTML =
+      '<div class="contract-paper">' +
+        "<h1>" + esc(p.title) + "</h1>" +
+        '<div class="meta">合同版本 V' + p.version + ' · 状态 ' + esc(p.status) + ' · 生成时间 ' + esc(formatTime(p.generated_at)) + "</div>" +
+        "<h3>甲乙双方</h3>" +
+        "<table>" +
+          "<tr><td>甲方</td><td>" + esc(p.party_a) + "</td></tr>" +
+          "<tr><td>乙方</td><td>" + esc(p.party_b) + "</td></tr>" +
+          "<tr><td>乙方注册地</td><td>" + esc(p.party_b_country) + "</td></tr>" +
+          "<tr><td>乙方注册地址</td><td>" + esc(p.party_b_address) + "</td></tr>" +
+        "</table>" +
+        "<h3>Schedule A · 商业条款</h3>" +
+        "<table>" + saRows + "</table>" +
+        "<h3>签字人信息</h3>" +
+        "<table>" + sgRows + "</table>" +
+        footer +
+      "</div>";
   } catch (e) {
-    box.innerHTML = `<div class="empty">加载失败：${e.message}</div>`;
+    box.innerHTML = '<div class="empty">加载失败：' + esc(e.message) + '</div>';
   }
 }
 
 /* ===== 审计页面 ===== */
 async function loadApprovals() {
   const tbody = document.querySelector("#approvals-table tbody");
-  if (!currentContractId) { tbody.innerHTML = `<tr><td colspan="6" class="empty">请先打开一笔合同。</td></tr>`; return; }
+  if (!currentContractId) { tbody.innerHTML = '<tr><td colspan="6" class="empty">请先打开一笔合同。</td></tr>'; return; }
   try {
     const rows = await api("/contracts/" + currentContractId + "/approvals");
-    tbody.innerHTML = rows.map(r =>
-      `<tr><td>${r.approver}</td><td>V${r.version}</td><td>${r.decision}</td>
-       <td>${r.comment||""}</td><td>${r.is_valid ? "✅" : "❌"}</td><td>${formatTime(r.created_at)}</td></tr>`
-    ).join("") || `<tr><td colspan="6" class="empty">暂无审批记录</td></tr>`;
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty">暂无审批记录</td></tr>';
+      return;
+    }
+    let html = "";
+    for (const r of rows) {
+      html += "<tr>";
+      html += "<td>" + esc(r.approver) + "</td>";
+      html += "<td>V" + r.version + "</td>";
+      html += "<td>" + esc(r.decision) + "</td>";
+      html += "<td>" + esc(r.comment || "") + "</td>";
+      html += "<td>" + (r.is_valid ? "✅" : "❌") + "</td>";
+      html += "<td>" + esc(formatTime(r.created_at)) + "</td>";
+      html += "</tr>";
+    }
+    tbody.innerHTML = html;
   } catch (e) {
-    tbody.innerHTML = `<tr><td colspan="6" class="empty">加载失败：${e.message}</td></tr>`;
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">加载失败：' + esc(e.message) + '</td></tr>';
   }
 }
 
 async function loadVersions() {
   const tbody = document.querySelector("#versions-table tbody");
-  if (!currentContractId) { tbody.innerHTML = `<tr><td colspan="2" class="empty">请先打开一笔合同。</td></tr>`; return; }
+  if (!currentContractId) { tbody.innerHTML = '<tr><td colspan="2" class="empty">请先打开一笔合同。</td></tr>'; return; }
   try {
     const rows = await api("/contracts/" + currentContractId + "/versions");
-    tbody.innerHTML = rows.map(r =>
-      `<tr><td>V${r.version}</td><td>${r.created_at||""}</td></tr>`
-    ).join("") || `<tr><td colspan="2" class="empty">暂无版本记录</td></tr>`;
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="2" class="empty">暂无版本记录</td></tr>';
+      return;
+    }
+    let html = "";
+    for (const r of rows) {
+      html += "<tr>";
+      html += "<td>V" + r.version + "</td>";
+      html += "<td>" + esc(formatTime(r.created_at)) + "</td>";
+      html += "</tr>";
+    }
+    tbody.innerHTML = html;
   } catch (e) {
-    tbody.innerHTML = `<tr><td colspan="2" class="empty">加载失败：${e.message}</td></tr>`;
+    tbody.innerHTML = '<tr><td colspan="2" class="empty">加载失败：' + esc(e.message) + '</td></tr>';
   }
 }
 
@@ -696,15 +700,18 @@ async function loadLogs() {
   if (!currentContractId) { box.innerHTML = "请先打开一笔合同。"; return; }
   try {
     const rows = await api("/contracts/" + currentContractId + "/logs");
-    box.innerHTML = rows.map(r =>
-      `<div>[${r.created_at}] <b>${r.operator}</b> · ${r.action} · V${r.version||"-"} · ${r.detail||""}</div>`
-    ).join("") || "（暂无日志）";
+    if (!rows.length) { box.innerHTML = "（暂无日志）"; return; }
+    let html = "";
+    for (const r of rows) {
+      html += "<div>[" + esc(formatTime(r.created_at)) + "] <b>" + esc(r.operator) + "</b> · " + esc(r.action) + " · V" + (r.version || "-") + " · " + esc(r.detail || "") + "</div>";
+    }
+    box.innerHTML = html;
   } catch (e) {
-    box.innerHTML = "加载失败：" + e.message;
+    box.innerHTML = "加载失败：" + esc(e.message);
   }
 }
 
-/* ===== 归档证据（新样式） ===== */
+/* ===== 归档证据 ===== */
 const ARCHIVE_META = [
   { key: "contract_preview", name: "合同预览", desc: "合同 HTML/PDF 快照，记录签署时的合同内容", tab: "preview" },
   { key: "approvals",        name: "审批记录", desc: "法务与 CEO 的审批人、版本、意见、时间",   tab: "approvals" },
@@ -716,33 +723,31 @@ const ARCHIVE_META = [
 async function loadArchive() {
   const card = document.getElementById("archive-card");
   if (!currentContractId) {
-    card.innerHTML = `<div class="empty">请先打开一笔合同。</div>`;
+    card.innerHTML = '<div class="empty">请先打开一笔合同。</div>';
     return;
   }
   try {
     const r = await api("/contracts/" + currentContractId + "/archive");
-    const items = ARCHIVE_META.map(m => {
+    let html = "";
+    for (const m of ARCHIVE_META) {
       const present = r.archive_items.includes(m.key);
       const btn = m.tab
-        ? `<button class="small secondary" onclick="switchTab('${m.tab}')">查看</button>`
-        : `<span class="hint" style="padding:0">（Mock）</span>`;
-      return `
-        <div class="archive-item">
-          <div class="info">
-            <div class="name">${present ? "✅ " : "⏳ "}${m.name}</div>
-            <div class="desc">${m.desc}</div>
-          </div>
-          <div>${btn}</div>
-        </div>
-      `;
-    }).join("");
-    card.innerHTML = items;
+        ? '<button class="small secondary" onclick="switchTab(\'' + m.tab + '\')">查看</button>'
+        : '<span class="hint" style="padding:0">（Mock）</span>';
+      html += '<div class="archive-item">';
+      html += '<div class="info">';
+      html += '<div class="name">' + (present ? "✅ " : "⏳ ") + esc(m.name) + "</div>";
+      html += '<div class="desc">' + esc(m.desc) + "</div>";
+      html += "</div>";
+      html += "<div>" + btn + "</div>";
+      html += "</div>";
+    }
+    card.innerHTML = html;
   } catch (e) {
-    card.innerHTML = `<div class="empty">⚠️ ${e.message}</div>`;
+    card.innerHTML = '<div class="empty">⚠️ ' + esc(e.message) + '</div>';
   }
 }
 
-/* 启动 */
 navigate("list");
 </script>
 </body>
